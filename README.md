@@ -33,6 +33,19 @@ use `./generate.sh --help` to see all available options.
 Note: if you are using Gitlab for building project `docs/spec/paths` folder must not be
 empty, otherwise only `Build and Publish` job will be passed.  
 
+## Config
+```yaml
+  network:
+    rpc: "" # (url) RPC API endpoint
+    contract_address: "" # (hex) target contract address
+    vault_address: "http://127.0.0.1:8200" # (url) vault address
+    vault_mount_path: "secret_data" # (string)
+```
+ENV
+```
+  VAULT_TOKEN (will be cleared after start service)
+```
+
 ## Running from docker 
   
 Make sure that docker installed.
