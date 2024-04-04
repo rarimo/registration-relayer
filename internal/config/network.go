@@ -49,7 +49,7 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		networkConfig := struct {
 			RPC             *ethclient.Client `fig:"rpc,required"`
 			ContractAddress common.Address    `fig:"contract_address,required"`
-			PrivateKey      *ecdsa.PrivateKey `fig:"private_key,required"`
+			PrivateKey      *ecdsa.PrivateKey `fig:"private_key"`
 			VaultAddress    string            `fig:"vault_address"`
 			VaultMountPath  string            `fig:"vault_mount_path"`
 		}{}
