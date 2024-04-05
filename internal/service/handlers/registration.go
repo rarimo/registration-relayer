@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -41,14 +42,14 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 	RelayerConfig(r).LockNonce()
 	defer RelayerConfig(r).UnlockNonce()
 
-	err = confGas(r, &txd)
+	err = confGas(r, &txd, &RelayerConfig(r).RegistrationAddress)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to configure gas and gasPrice")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tx, err := sendTx(r, &txd)
+	tx, err := sendTx(r, &txd, &RelayerConfig(r).RegistrationAddress)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to send tx")
 		ape.RenderErr(w, problems.InternalError())
@@ -57,18 +58,25 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 
 	RelayerConfig(r).IncrementNonce()
 
-	ape.Render(w, resources.Tx{
-		Key: resources.Key{
-			ID:   tx.Hash().String(),
-			Type: resources.TXS,
-		},
-		Attributes: resources.TxAttributes{
-			TxHash: tx.Hash().String(),
-		},
-	})
+	ape.Render(w, newTxResponse(tx))
 }
 
-func confGas(r *http.Request, txd *txData) (err error) {
+func newTxResponse(tx *types.Transaction) resources.TxResponse {
+	return resources.TxResponse{
+		Data: resources.Tx{
+
+			Key: resources.Key{
+				ID:   tx.Hash().String(),
+				Type: resources.TXS,
+			},
+			Attributes: resources.TxAttributes{
+				TxHash: tx.Hash().String(),
+			},
+		},
+	}
+}
+
+func confGas(r *http.Request, txd *txData, receiver *common.Address) (err error) {
 	txd.gasPrice, err = RelayerConfig(r).RPC.SuggestGasPrice(r.Context())
 	if err != nil {
 		return fmt.Errorf("failed to suggest gas price: %w", err)
@@ -76,7 +84,7 @@ func confGas(r *http.Request, txd *txData) (err error) {
 
 	txd.gas, err = RelayerConfig(r).RPC.EstimateGas(r.Context(), ethereum.CallMsg{
 		From:     crypto.PubkeyToAddress(RelayerConfig(r).PrivateKey.PublicKey),
-		To:       &RelayerConfig(r).ContractAddress,
+		To:       receiver,
 		GasPrice: txd.gasPrice,
 		Data:     txd.dataBytes,
 	})
@@ -87,8 +95,8 @@ func confGas(r *http.Request, txd *txData) (err error) {
 	return nil
 }
 
-func sendTx(r *http.Request, txd *txData) (tx *types.Transaction, err error) {
-	tx, err = signTx(r, txd)
+func sendTx(r *http.Request, txd *txData, receiver *common.Address) (tx *types.Transaction, err error) {
+	tx, err = signTx(r, txd, receiver)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign new tx: %w", err)
 	}
@@ -99,7 +107,7 @@ func sendTx(r *http.Request, txd *txData) (tx *types.Transaction, err error) {
 				return nil, fmt.Errorf("failed to reset nonce: %w", err)
 			}
 
-			tx, err = signTx(r, txd)
+			tx, err = signTx(r, txd, receiver)
 			if err != nil {
 				return nil, fmt.Errorf("failed to sign new tx: %w", err)
 			}
@@ -115,7 +123,7 @@ func sendTx(r *http.Request, txd *txData) (tx *types.Transaction, err error) {
 	return tx, nil
 }
 
-func signTx(r *http.Request, txd *txData) (tx *types.Transaction, err error) {
+func signTx(r *http.Request, txd *txData, receiver *common.Address) (tx *types.Transaction, err error) {
 	tx, err = types.SignNewTx(
 		RelayerConfig(r).PrivateKey,
 		types.NewCancunSigner(RelayerConfig(r).ChainID),
@@ -123,7 +131,7 @@ func signTx(r *http.Request, txd *txData) (tx *types.Transaction, err error) {
 			Nonce:    RelayerConfig(r).Nonce(),
 			Gas:      txd.gas,
 			GasPrice: txd.gasPrice,
-			To:       &RelayerConfig(r).ContractAddress,
+			To:       receiver,
 			Data:     txd.dataBytes,
 		},
 	)

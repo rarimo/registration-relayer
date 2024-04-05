@@ -33,11 +33,12 @@ type ethereum struct {
 }
 
 type RelayerConfig struct {
-	RPC             *ethclient.Client
-	ContractAddress common.Address
-	ChainID         *big.Int
-	PrivateKey      *ecdsa.PrivateKey
-	nonce           uint64
+	RPC                     *ethclient.Client
+	RegistrationAddress     common.Address
+	LightweightStateAddress common.Address
+	ChainID                 *big.Int
+	PrivateKey              *ecdsa.PrivateKey
+	nonce                   uint64
 
 	mut *sync.Mutex
 }
@@ -47,10 +48,12 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		var result RelayerConfig
 
 		networkConfig := struct {
-			RPC             *ethclient.Client `fig:"rpc,required"`
-			ContractAddress common.Address    `fig:"contract_address,required"`
-			VaultAddress    string            `fig:"vault_address,required"`
-			VaultMountPath  string            `fig:"vault_mount_path,required"`
+			RPC                     *ethclient.Client `fig:"rpc,required"`
+			RegistrationAddress     common.Address    `fig:"registration,required"`
+			LightweightStateAddress common.Address    `fig:"lightweight_state,required"`
+			PrivateKey              *ecdsa.PrivateKey `fig:"private_key"`
+			VaultAddress            string            `fig:"vault_address"`
+			VaultMountPath          string            `fig:"vault_mount_path"`
 		}{}
 
 		err := figure.
@@ -63,14 +66,17 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		}
 
 		result.RPC = networkConfig.RPC
-		result.ContractAddress = networkConfig.ContractAddress
+		result.RegistrationAddress = networkConfig.RegistrationAddress
+		result.LightweightStateAddress = networkConfig.LightweightStateAddress
 
 		result.ChainID, err = result.RPC.ChainID(context.Background())
 		if err != nil {
 			panic(errors.Wrap(err, "failed to get chain ID"))
 		}
 
-		result.PrivateKey = extractPrivateKey(networkConfig.VaultAddress, networkConfig.VaultMountPath)
+		if networkConfig.PrivateKey == nil {
+			result.PrivateKey = extractPrivateKey(networkConfig.VaultAddress, networkConfig.VaultMountPath)
+		}
 
 		result.nonce, err = result.RPC.NonceAt(context.Background(), crypto.PubkeyToAddress(result.PrivateKey.PublicKey), nil)
 		if err != nil {
