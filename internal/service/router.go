@@ -20,6 +20,7 @@ func (s *service) router() chi.Router {
 	r.Route("/integrations/registration-relayer", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Post("/register", handlers.Registration)
+			r.Post("/transit-state", handlers.TransitState)
 		})
 	})
 

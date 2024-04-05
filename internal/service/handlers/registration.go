@@ -76,7 +76,7 @@ func confGas(r *http.Request, txd *txData) (err error) {
 
 	txd.gas, err = RelayerConfig(r).RPC.EstimateGas(r.Context(), ethereum.CallMsg{
 		From:     crypto.PubkeyToAddress(RelayerConfig(r).PrivateKey.PublicKey),
-		To:       &RelayerConfig(r).ContractAddress,
+		To:       &RelayerConfig(r).RegistrationAddress,
 		GasPrice: txd.gasPrice,
 		Data:     txd.dataBytes,
 	})
@@ -123,7 +123,7 @@ func signTx(r *http.Request, txd *txData) (tx *types.Transaction, err error) {
 			Nonce:    RelayerConfig(r).Nonce(),
 			Gas:      txd.gas,
 			GasPrice: txd.gasPrice,
-			To:       &RelayerConfig(r).ContractAddress,
+			To:       &RelayerConfig(r).RegistrationAddress,
 			Data:     txd.dataBytes,
 		},
 	)
