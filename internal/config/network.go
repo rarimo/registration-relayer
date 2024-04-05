@@ -49,9 +49,8 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		networkConfig := struct {
 			RPC             *ethclient.Client `fig:"rpc,required"`
 			ContractAddress common.Address    `fig:"contract_address,required"`
-			PrivateKey      *ecdsa.PrivateKey `fig:"private_key"`
-			VaultAddress    string            `fig:"vault_address"`
-			VaultMountPath  string            `fig:"vault_mount_path"`
+			VaultAddress    string            `fig:"vault_address,required"`
+			VaultMountPath  string            `fig:"vault_mount_path,required"`
 		}{}
 
 		err := figure.
@@ -71,46 +70,7 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			panic(errors.Wrap(err, "failed to get chain ID"))
 		}
 
-		result.PrivateKey = networkConfig.PrivateKey
-		if result.PrivateKey == nil {
-			conf := vaultapi.DefaultConfig()
-			conf.Address = networkConfig.VaultAddress
-
-			vaultClient, err := vaultapi.NewClient(conf)
-			if err != nil {
-				panic(errors.Wrap(err, "failed to initialize new client"))
-			}
-
-			token := struct {
-				Token string `dig:"VAULT_TOKEN,clear"`
-			}{}
-
-			err = dig.Out(&token).Now()
-			if err != nil {
-				panic(errors.Wrap(err, "failed to dig out token"))
-			}
-
-			vaultClient.SetToken(token.Token)
-
-			secret, err := vaultClient.KVv2(networkConfig.VaultMountPath).Get(context.Background(), "relayer")
-			if err != nil {
-				panic(errors.Wrap(err, "failed to get secret"))
-			}
-
-			vaultRelayerConf := struct {
-				PrivateKey *ecdsa.PrivateKey `fig:"private_key,required"`
-			}{}
-
-			if err := figure.
-				Out(&vaultRelayerConf).
-				With(figure.EthereumHooks).
-				From(secret.Data).
-				Please(); err != nil {
-				panic(errors.Wrap(err, "failed to figure out"))
-			}
-
-			result.PrivateKey = vaultRelayerConf.PrivateKey
-		}
+		result.PrivateKey = extractPrivateKey(networkConfig.VaultAddress, networkConfig.VaultMountPath)
 
 		result.nonce, err = result.RPC.NonceAt(context.Background(), crypto.PubkeyToAddress(result.PrivateKey.PublicKey), nil)
 		if err != nil {
@@ -147,4 +107,44 @@ func (n *RelayerConfig) ResetNonce(client *ethclient.Client) error {
 	}
 	n.nonce = nonce
 	return nil
+}
+
+func extractPrivateKey(vaultAddress, vaultMountPath string) *ecdsa.PrivateKey {
+	conf := vaultapi.DefaultConfig()
+	conf.Address = vaultAddress
+
+	vaultClient, err := vaultapi.NewClient(conf)
+	if err != nil {
+		panic(errors.Wrap(err, "failed to initialize new client"))
+	}
+
+	token := struct {
+		Token string `dig:"VAULT_TOKEN,clear"`
+	}{}
+
+	err = dig.Out(&token).Now()
+	if err != nil {
+		panic(errors.Wrap(err, "failed to dig out token"))
+	}
+
+	vaultClient.SetToken(token.Token)
+
+	secret, err := vaultClient.KVv2(vaultMountPath).Get(context.Background(), "relayer")
+	if err != nil {
+		panic(errors.Wrap(err, "failed to get secret"))
+	}
+
+	vaultRelayerConf := struct {
+		PrivateKey *ecdsa.PrivateKey `fig:"private_key,required"`
+	}{}
+
+	if err := figure.
+		Out(&vaultRelayerConf).
+		With(figure.EthereumHooks).
+		From(secret.Data).
+		Please(); err != nil {
+		panic(errors.Wrap(err, "failed to figure out"))
+	}
+
+	return vaultRelayerConf.PrivateKey
 }
