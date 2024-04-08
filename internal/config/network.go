@@ -35,7 +35,7 @@ type ethereum struct {
 type RelayerConfig struct {
 	RPC                     *ethclient.Client
 	RegistrationAddress     common.Address
-	LightweightStateAddress common.Address
+	LightweightStateAddress *common.Address
 	ChainID                 *big.Int
 	PrivateKey              *ecdsa.PrivateKey
 	nonce                   uint64
@@ -50,7 +50,7 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		networkConfig := struct {
 			RPC                     *ethclient.Client `fig:"rpc,required"`
 			RegistrationAddress     common.Address    `fig:"registration,required"`
-			LightweightStateAddress common.Address    `fig:"lightweight_state,required"`
+			LightweightStateAddress *common.Address   `fig:"lightweight_state"`
 			PrivateKey              *ecdsa.PrivateKey `fig:"private_key"`
 			VaultAddress            string            `fig:"vault_address"`
 			VaultMountPath          string            `fig:"vault_mount_path"`
