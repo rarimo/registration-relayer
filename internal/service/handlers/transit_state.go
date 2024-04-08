@@ -28,14 +28,14 @@ func TransitState(w http.ResponseWriter, r *http.Request) {
 	RelayerConfig(r).LockNonce()
 	defer RelayerConfig(r).UnlockNonce()
 
-	err = confGas(r, &txd, &RelayerConfig(r).LightweightStateAddress)
+	err = confGas(r, &txd, RelayerConfig(r).LightweightStateAddress)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to configure gas and gasPrice")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tx, err := sendTx(r, &txd, &RelayerConfig(r).LightweightStateAddress)
+	tx, err := sendTx(r, &txd, RelayerConfig(r).LightweightStateAddress)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to send tx")
 		ape.RenderErr(w, problems.InternalError())
