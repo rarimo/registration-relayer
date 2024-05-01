@@ -2,7 +2,17 @@
 
 ## Description
 
-[//]: # (TODO: add description)
+Relayer service that makes calls to the smart contracts. Now it is used to work with such endpoints:
+  - `/integrations/registration-relayer/v1/register` - it takes calldata in hex encoided format from Rarime mobile applications and makes call to the smart contract.
+
+    Request body example:
+    ```json
+    {
+      "data": {
+        "tx_data": "hex_encoded_call_data"
+      }
+    }
+    ```
 
 ## Install
 
