@@ -10,7 +10,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	pkgErrors "github.com/pkg/errors"
 	"github.com/rarimo/registration-relayer/internal/service/requests"
 	"github.com/rarimo/registration-relayer/resources"
 	"gitlab.com/distributed_lab/ape"
@@ -45,6 +48,12 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 	err = confGas(r, &txd, &RelayerConfig(r).RegistrationAddress)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to configure gas and gasPrice")
+		if pkgErrors.Is(err, vm.ErrExecutionReverted) {
+			ape.RenderErr(w, problems.BadRequest(validation.Errors{
+				"tx": pkgErrors.Cause(err),
+			}.Filter())...)
+			return
+		}
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
