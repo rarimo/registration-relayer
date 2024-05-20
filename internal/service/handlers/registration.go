@@ -13,11 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	pkgErrors "github.com/pkg/errors"
 	"github.com/rarimo/registration-relayer/internal/service/requests"
 	"github.com/rarimo/registration-relayer/resources"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
+	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
 type txData struct {
@@ -48,9 +48,12 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 	err = confGas(r, &txd, &RelayerConfig(r).RegistrationAddress)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to configure gas and gasPrice")
-		if pkgErrors.Is(err, vm.ErrExecutionReverted) {
+		// `errors.Is` is not working for rpc errors, they passed as a string without additional wrapping
+		// because of this we operate with raw strings
+		if strings.Contains(err.Error(), vm.ErrExecutionReverted.Error()) {
+			errParts := strings.Split(err.Error(), ":")
 			ape.RenderErr(w, problems.BadRequest(validation.Errors{
-				"tx": pkgErrors.Cause(err),
+				"Registration": errors.New(strings.Trim(errParts[len(errParts)-1], " ")),
 			}.Filter())...)
 			return
 		}
