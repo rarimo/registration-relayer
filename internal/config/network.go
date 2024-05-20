@@ -74,7 +74,8 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			panic(errors.Wrap(err, "failed to get chain ID"))
 		}
 
-		if networkConfig.PrivateKey == nil {
+		result.PrivateKey = networkConfig.PrivateKey
+		if result.PrivateKey == nil {
 			result.PrivateKey = extractPrivateKey(networkConfig.VaultAddress, networkConfig.VaultMountPath)
 		}
 

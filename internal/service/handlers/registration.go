@@ -52,9 +52,9 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 		// because of this we operate with raw strings
 		if strings.Contains(err.Error(), vm.ErrExecutionReverted.Error()) {
 			errParts := strings.Split(err.Error(), ":")
-			ape.RenderErr(w, problems.BadRequest(validation.Errors{
-				"Registration": errors.New(strings.Trim(errParts[len(errParts)-1], " ")),
-			}.Filter())...)
+			contractName := strings.TrimSpace(errParts[len(errParts)-2])
+			errMsg := errors.New(strings.TrimSpace(errParts[len(errParts)-1]))
+			ape.RenderErr(w, problems.BadRequest(validation.Errors{contractName: errMsg}.Filter())...)
 			return
 		}
 		ape.RenderErr(w, problems.InternalError())
