@@ -17,6 +17,7 @@ import (
 	"github.com/rarimo/registration-relayer/resources"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
@@ -33,6 +34,12 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
+
+	log := Log(r).WithFields(logan.F{
+		"user-agent": r.Header.Get("User-Agent"),
+		"calldata":   req.Data.TxData,
+	})
+	log.Debug("registration request")
 
 	var txd txData
 	txd.dataBytes, err = hexutil.Decode(req.Data.TxData)
