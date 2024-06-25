@@ -53,8 +53,8 @@ empty, otherwise only `Build and Publish` job will be passed.
     vault_address: "http://127.0.0.1:8200" # (url) vault address
     vault_mount_path: "secret_data" # (string)
     whitelist: # (list of hex addresses) specifie which contracts can be passed in `destination` field in request
-      - 0x123...123
-      - 0x123...123
+      - "0x123...123"
+      - "0x123...123"
 ```
 ENV
 ```
