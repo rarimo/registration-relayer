@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"math/big"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -32,12 +34,15 @@ type ethereum struct {
 	getter kv.Getter
 }
 
+type whitelist []string
+
 type RelayerConfig struct {
 	RPC                     *ethclient.Client
 	RegistrationAddress     common.Address
 	LightweightStateAddress *common.Address
 	ChainID                 *big.Int
 	PrivateKey              *ecdsa.PrivateKey
+	WhiteList               whitelist
 	nonce                   uint64
 
 	mut *sync.Mutex
@@ -54,8 +59,8 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			PrivateKey              *ecdsa.PrivateKey `fig:"private_key"`
 			VaultAddress            string            `fig:"vault_address"`
 			VaultMountPath          string            `fig:"vault_mount_path"`
+			WhiteList               []string          `fig:"whitelist"`
 		}{}
-
 		err := figure.
 			Out(&networkConfig).
 			With(figure.EthereumHooks).
@@ -84,8 +89,17 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			panic(errors.Wrap(err, "failed to get nonce"))
 		}
 
-		result.mut = &sync.Mutex{}
+		result.WhiteList = make(whitelist, 0, len(networkConfig.WhiteList))
+		for _, address := range networkConfig.WhiteList {
+			address = strings.ToLower(address)
+			if result.WhiteList.IsPresent(address) {
+				continue
+			}
 
+			result.WhiteList = append(result.WhiteList, address)
+		}
+
+		result.mut = &sync.Mutex{}
 		return &result
 	}).(*RelayerConfig)
 }
@@ -154,4 +168,8 @@ func extractPrivateKey(vaultAddress, vaultMountPath string) *ecdsa.PrivateKey {
 	}
 
 	return vaultRelayerConf.PrivateKey
+}
+
+func (w whitelist) IsPresent(address string) bool {
+	return slices.Contains(w, address)
 }

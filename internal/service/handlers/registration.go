@@ -41,6 +41,21 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 	})
 	log.Debug("registration request")
 
+	// `RelayerConfig(r).RegistrationAddress` is default value for target contract
+	// if destination not specified this value will be used
+	// this value is required in config
+	registrationAddress := RelayerConfig(r).RegistrationAddress
+	if req.Data.Destination != nil {
+		if !RelayerConfig(r).WhiteList.IsPresent(*req.Data.Destination) {
+			ape.RenderErr(w, problems.BadRequest(validation.Errors{
+				"data/destination": fmt.Errorf("specified contract address not allowed"),
+			})...)
+		}
+
+		// destination is valid hex address because of request validation
+		registrationAddress = common.HexToAddress(*req.Data.Destination)
+	}
+
 	var txd txData
 	txd.dataBytes, err = hexutil.Decode(req.Data.TxData)
 	if err != nil {
@@ -52,7 +67,7 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 	RelayerConfig(r).LockNonce()
 	defer RelayerConfig(r).UnlockNonce()
 
-	err = confGas(r, &txd, &RelayerConfig(r).RegistrationAddress)
+	err = confGas(r, &txd, &registrationAddress)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to configure gas and gasPrice")
 		// `errors.Is` is not working for rpc errors, they passed as a string without additional wrapping
@@ -68,7 +83,7 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := sendTx(r, &txd, &RelayerConfig(r).RegistrationAddress)
+	tx, err := sendTx(r, &txd, &registrationAddress)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to send tx")
 		ape.RenderErr(w, problems.InternalError())
