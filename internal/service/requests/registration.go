@@ -10,6 +10,11 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
+var (
+	calldataRegexp = regexp.MustCompile("^0x[0-9a-fA-F]+$")
+	addressRegexp  = regexp.MustCompile("^0x[0-9a-fA-F]{40}")
+)
+
 type RegistrationRequestData struct {
 	TxData      string  `json:"tx_data"`
 	Destination *string `json:"destination,omitempty"`
@@ -30,7 +35,7 @@ func NewRegistrationRequest(r *http.Request) (req RegistrationRequest, err error
 	}
 
 	return req, validation.Errors{
-		"data/tx_data":     validation.Validate(req.Data.TxData, validation.Match(regexp.MustCompile("^0x[0-9a-fA-F]+$"))),
-		"data/destination": validation.Validate(req.Data.Destination, validation.When(req.Data.Destination != nil, validation.Required, validation.Match(regexp.MustCompile("^0x[0-9a-fA-F]{40}")))),
+		"data/tx_data":     validation.Validate(req.Data.TxData, validation.Match(calldataRegexp)),
+		"data/destination": validation.Validate(req.Data.Destination, validation.When(req.Data.Destination != nil, validation.Required, validation.Match(addressRegexp))),
 	}.Filter()
 }

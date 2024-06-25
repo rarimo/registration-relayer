@@ -41,6 +41,9 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 	})
 	log.Debug("registration request")
 
+	// `RelayerConfig(r).RegistrationAddress` is default value for target contract
+	// if destination not specified this value will be used
+	// this value is required in config
 	registrationAddress := RelayerConfig(r).RegistrationAddress
 	if req.Data.Destination != nil {
 		if !RelayerConfig(r).WhiteList.IsPresent(*req.Data.Destination) {
@@ -49,6 +52,7 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 			})...)
 		}
 
+		// destination is valid hex address because of request validation
 		registrationAddress = common.HexToAddress(*req.Data.Destination)
 	}
 

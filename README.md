@@ -52,7 +52,7 @@ empty, otherwise only `Build and Publish` job will be passed.
     private_key: "" # (hex without 0x) ECDSA secp256k1 private key for sign transactions
     vault_address: "http://127.0.0.1:8200" # (url) vault address
     vault_mount_path: "secret_data" # (string)
-    whitelist: # (list of hex addresses) specifie which contracts can be passed in `destination` field in request
+    whitelist: # (list of hex addresses) specify which contracts can be passed in `destination` field in request
       - "0x123...123"
       - "0x123...123"
 ```
@@ -60,9 +60,8 @@ ENV
 ```
   VAULT_TOKEN (will be cleared after start service)
 ```
-### Order private key getting: 
-1. private_key 
-2. vault 
+There must be specified or private key, or vault address and path. If specified both, then will be used private_key from config.
+
 ## Running from docker 
   
 Make sure that docker installed.
