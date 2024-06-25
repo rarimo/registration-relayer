@@ -9,7 +9,8 @@ Relayer service that makes calls to the smart contracts. Now it is used to work 
     ```json
     {
       "data": {
-        "tx_data": "hex_encoded_call_data"
+        "tx_data": "hex_encoded_call_data",
+        "destination": "contract_address,optional"
       }
     }
     ```
@@ -46,16 +47,22 @@ empty, otherwise only `Build and Publish` job will be passed.
 ## Config
 ```yaml
   network:
-    rpc: "" # (url) RPC API endpoint
-    contract_address: "" # (hex) target contract address
+    rpc: "" # (url) RPC API endpoint | required
+    registration: "" # (hex) target contract address | required
+    private_key: "" # (hex without 0x) ECDSA secp256k1 private key for sign transactions
     vault_address: "http://127.0.0.1:8200" # (url) vault address
     vault_mount_path: "secret_data" # (string)
+    whitelist: # (list of hex addresses) specifie which contracts can be passed in `destination` field in request
+      - 0x123...123
+      - 0x123...123
 ```
 ENV
 ```
   VAULT_TOKEN (will be cleared after start service)
 ```
-
+### Order private key getting: 
+1. private_key 
+2. vault 
 ## Running from docker 
   
 Make sure that docker installed.
