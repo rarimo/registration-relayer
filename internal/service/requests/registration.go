@@ -35,7 +35,7 @@ func NewRegistrationRequest(r *http.Request) (req RegistrationRequest, err error
 	}
 
 	return req, validation.Errors{
-		"data/tx_data":     validation.Validate(req.Data.TxData, validation.Match(calldataRegexp)),
+		"data/tx_data":     validation.Validate(req.Data.TxData, validation.Required, validation.Match(calldataRegexp)),
 		"data/destination": validation.Validate(req.Data.Destination, validation.When(req.Data.Destination != nil, validation.Required, validation.Match(addressRegexp))),
 	}.Filter()
 }
