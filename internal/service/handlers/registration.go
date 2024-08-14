@@ -50,6 +50,7 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 			ape.RenderErr(w, problems.BadRequest(validation.Errors{
 				"data/destination": fmt.Errorf("specified contract address not allowed"),
 			})...)
+			return
 		}
 
 		// destination is valid hex address because of request validation
