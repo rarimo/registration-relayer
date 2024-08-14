@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"math/big"
-	"slices"
 	"strings"
 	"sync"
 
@@ -34,7 +33,7 @@ type ethereum struct {
 	getter kv.Getter
 }
 
-type whitelist []string
+type whitelist map[string]struct{}
 
 type RelayerConfig struct {
 	RPC                     *ethclient.Client
@@ -89,14 +88,14 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			panic(errors.Wrap(err, "failed to get nonce"))
 		}
 
-		result.WhiteList = make(whitelist, 0, len(networkConfig.WhiteList))
+		result.WhiteList = make(whitelist, len(networkConfig.WhiteList))
 		for _, address := range networkConfig.WhiteList {
 			address = strings.ToLower(address)
 			if result.WhiteList.IsPresent(address) {
 				continue
 			}
 
-			result.WhiteList = append(result.WhiteList, address)
+			result.WhiteList[address] = struct{}{}
 		}
 
 		result.mut = &sync.Mutex{}
@@ -171,5 +170,6 @@ func extractPrivateKey(vaultAddress, vaultMountPath string) *ecdsa.PrivateKey {
 }
 
 func (w whitelist) IsPresent(address string) bool {
-	return slices.Contains(w, address)
+	_, ok := w[address]
+	return ok
 }
