@@ -91,8 +91,6 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	RelayerConfig(r).IncrementNonce()
-
 	ape.Render(w, newTxResponse(tx))
 }
 
@@ -136,6 +134,11 @@ func sendTx(r *http.Request, txd *txData, receiver *common.Address) (tx *types.T
 		return nil, fmt.Errorf("failed to sign new tx: %w", err)
 	}
 
+	if RelayerConfig(r).NoSend {
+		Log(r).WithField("hash", tx.Hash().String()).Warn("transaction sending disabled")
+		return tx, nil
+	}
+
 	if err = RelayerConfig(r).RPC.SendTransaction(r.Context(), tx); err != nil {
 		if strings.Contains(err.Error(), "nonce") {
 			if err = RelayerConfig(r).ResetNonce(RelayerConfig(r).RPC); err != nil {
@@ -154,6 +157,8 @@ func sendTx(r *http.Request, txd *txData, receiver *common.Address) (tx *types.T
 			return nil, fmt.Errorf("failed to send transaction: %w", err)
 		}
 	}
+
+	RelayerConfig(r).IncrementNonce()
 
 	return tx, nil
 }
