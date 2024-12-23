@@ -35,7 +35,7 @@ func TransitState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := sendTx(r, &txd, RelayerConfig(r).LightweightStateAddress)
+	tx, err := sendTx(r, &txd, RelayerConfig(r).LightweightStateAddress, false)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to send tx")
 		ape.RenderErr(w, problems.InternalError())

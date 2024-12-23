@@ -84,14 +84,12 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := sendTx(r, &txd, &registrationAddress)
+	tx, err := sendTx(r, &txd, &registrationAddress, req.Data.NoSend)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to send tx")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
-
-	RelayerConfig(r).IncrementNonce()
 
 	ape.Render(w, newTxResponse(tx))
 }
@@ -130,10 +128,15 @@ func confGas(r *http.Request, txd *txData, receiver *common.Address) (err error)
 	return nil
 }
 
-func sendTx(r *http.Request, txd *txData, receiver *common.Address) (tx *types.Transaction, err error) {
+func sendTx(r *http.Request, txd *txData, receiver *common.Address, noSend bool) (tx *types.Transaction, err error) {
 	tx, err = signTx(r, txd, receiver)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign new tx: %w", err)
+	}
+
+	if noSend {
+		Log(r).WithField("hash", tx.Hash().String()).Warn("transaction sending disabled")
+		return tx, nil
 	}
 
 	if err = RelayerConfig(r).RPC.SendTransaction(r.Context(), tx); err != nil {
@@ -154,6 +157,8 @@ func sendTx(r *http.Request, txd *txData, receiver *common.Address) (tx *types.T
 			return nil, fmt.Errorf("failed to send transaction: %w", err)
 		}
 	}
+
+	RelayerConfig(r).IncrementNonce()
 
 	return tx, nil
 }
