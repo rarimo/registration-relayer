@@ -43,7 +43,6 @@ type RelayerConfig struct {
 	PrivateKey              *ecdsa.PrivateKey
 	WhiteList               whitelist
 	nonce                   uint64
-	NoSend                  bool
 
 	mut *sync.Mutex
 }
@@ -60,7 +59,6 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			VaultAddress            string            `fig:"vault_address"`
 			VaultMountPath          string            `fig:"vault_mount_path"`
 			WhiteList               []string          `fig:"whitelist"`
-			NoSend                  bool              `fig:"no_send"`
 		}{}
 		err := figure.
 			Out(&networkConfig).
@@ -99,7 +97,6 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 
 			result.WhiteList[address] = struct{}{}
 		}
-		result.NoSend = networkConfig.NoSend
 
 		result.mut = &sync.Mutex{}
 		return &result

@@ -13,7 +13,6 @@ network:
     - 0x123...123
     - 0x123...123
     - 0x123...123
-  no_send: false
 
 log:
   level: debug
