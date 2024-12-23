@@ -17,6 +17,7 @@ var (
 
 type RegistrationRequestData struct {
 	TxData      string  `json:"tx_data"`
+	NoSend      bool    `json:"no_send"`
 	Destination *string `json:"destination,omitempty"`
 }
 
