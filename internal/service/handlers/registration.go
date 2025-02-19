@@ -34,11 +34,15 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
-
-	log := Log(r).WithFields(logan.F{
+	logF := logan.F{
 		"user-agent": r.Header.Get("User-Agent"),
 		"calldata":   req.Data.TxData,
-	})
+	}
+	if req.Data.Meta != nil {
+		logF = logF.Merge(*req.Data.Meta)
+	}
+
+	log := Log(r).WithFields(logF)
 	log.Debug("registration request")
 
 	// `RelayerConfig(r).RegistrationAddress` is default value for target contract

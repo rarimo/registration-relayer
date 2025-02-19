@@ -1,0 +1,20 @@
+type: object
+required:
+  - tx_data
+  - no_send
+properties:
+  meta:
+    type: object
+    description: "Metadata if it is required"
+    example: {"source": "web", "user_id": 123}
+  tx_data:
+    type: string
+  no_send:
+    type: bool
+    description: Flag indicates whether transaction should be sent on-chain
+    example: true
+  destination:
+    type: string
+    example: "0xC0B09085Fa2ad3A8BbF96494B8d5cd10702FE20d"
+    description: Address of registration smart contract
+

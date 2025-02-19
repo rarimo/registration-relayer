@@ -1,0 +1,7 @@
+type: object
+x-go-is-request: true
+required:
+  - data
+properties:
+  data:
+    $ref: '#/components/schemas/RegistrationRequestData'
