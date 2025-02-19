@@ -38,8 +38,8 @@ func Registration(w http.ResponseWriter, r *http.Request) {
 		"user-agent": r.Header.Get("User-Agent"),
 		"calldata":   req.Data.TxData,
 	}
-	if req.Meta != nil {
-		logF = logF.Merge(*req.Meta)
+	if req.Data.Meta != nil {
+		logF = logF.Merge(*req.Data.Meta)
 	}
 
 	log := Log(r).WithFields(logF)

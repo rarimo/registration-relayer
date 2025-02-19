@@ -3,6 +3,10 @@ required:
   - tx_data
   - no_send
 properties:
+  meta:
+    type: object
+    description: "Metadata if it is required"
+    example: {"source": "web", "user_id": 123}
   tx_data:
     type: string
   no_send:

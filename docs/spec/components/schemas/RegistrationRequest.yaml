@@ -3,9 +3,5 @@ x-go-is-request: true
 required:
   - data
 properties:
-  meta:
-    type: object
-    description: "Metadata if it is required"
-    example: {"source": "web", "user_id": 123}
   data:
     $ref: '#/components/schemas/RegistrationRequestData'
