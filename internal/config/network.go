@@ -43,6 +43,7 @@ type RelayerConfig struct {
 	PrivateKey              *ecdsa.PrivateKey
 	WhiteList               whitelist
 	nonce                   uint64
+	GasLimitMultiplier      float64
 
 	mut *sync.Mutex
 }
@@ -59,6 +60,7 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			VaultAddress            string            `fig:"vault_address"`
 			VaultMountPath          string            `fig:"vault_mount_path"`
 			WhiteList               []string          `fig:"whitelist"`
+			GasLimitMultiplier      float64           `fig:"gas_limit_multiplier"`
 		}{}
 		err := figure.
 			Out(&networkConfig).
@@ -98,6 +100,11 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			result.WhiteList[address] = struct{}{}
 		}
 
+		result.GasLimitMultiplier = networkConfig.GasLimitMultiplier
+		if result.GasLimitMultiplier == 0.0 {
+			result.GasLimitMultiplier = 1.2
+		}
+
 		result.mut = &sync.Mutex{}
 		return &result
 	}).(*RelayerConfig)
@@ -119,7 +126,7 @@ func (n *RelayerConfig) IncrementNonce() {
 	n.nonce++
 }
 
-// ResetNonce sets nonce to the value received from a node
+// // ResetNonce sets nonce to the value received from a node
 func (n *RelayerConfig) ResetNonce(client *ethclient.Client) error {
 	nonce, err := client.NonceAt(context.Background(), crypto.PubkeyToAddress(n.PrivateKey.PublicKey), nil)
 	if err != nil {

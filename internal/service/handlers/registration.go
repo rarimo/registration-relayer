@@ -128,6 +128,7 @@ func confGas(r *http.Request, txd *txData, receiver *common.Address) (err error)
 	if err != nil {
 		return fmt.Errorf("failed to estimate gas: %w", err)
 	}
+	txd.gas = uint64(float64(txd.gas) * RelayerConfig(r).GasLimitMultiplier)
 
 	return nil
 }
