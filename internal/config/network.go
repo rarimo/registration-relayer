@@ -61,7 +61,9 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			VaultMountPath          string            `fig:"vault_mount_path"`
 			WhiteList               []string          `fig:"whitelist"`
 			GasLimitMultiplier      float64           `fig:"gas_limit_multiplier"`
-		}{}
+		}{
+			GasLimitMultiplier: 1.2,
+		}
 		err := figure.
 			Out(&networkConfig).
 			With(figure.EthereumHooks).
@@ -99,11 +101,7 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 
 			result.WhiteList[address] = struct{}{}
 		}
-
 		result.GasLimitMultiplier = networkConfig.GasLimitMultiplier
-		if result.GasLimitMultiplier == 0.0 {
-			result.GasLimitMultiplier = 1.2
-		}
 
 		result.mut = &sync.Mutex{}
 		return &result
