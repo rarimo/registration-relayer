@@ -5,6 +5,8 @@ network:
   private_key: ""
   vault_address: "https://127.0.0.1:8200"
   vault_mount_path: "secret_data"
+  gas_limit_multiplier: 1.2
+
   whitelist: 
     - 0x123...123
     - 0x123...123

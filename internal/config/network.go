@@ -43,6 +43,7 @@ type RelayerConfig struct {
 	PrivateKey              *ecdsa.PrivateKey
 	WhiteList               whitelist
 	nonce                   uint64
+	GasLimitMultiplier      float64
 
 	mut *sync.Mutex
 }
@@ -59,7 +60,10 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			VaultAddress            string            `fig:"vault_address"`
 			VaultMountPath          string            `fig:"vault_mount_path"`
 			WhiteList               []string          `fig:"whitelist"`
-		}{}
+			GasLimitMultiplier      float64           `fig:"gas_limit_multiplier"`
+		}{
+			GasLimitMultiplier: 1.2,
+		}
 		err := figure.
 			Out(&networkConfig).
 			With(figure.EthereumHooks).
@@ -97,6 +101,7 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 
 			result.WhiteList[address] = struct{}{}
 		}
+		result.GasLimitMultiplier = networkConfig.GasLimitMultiplier
 
 		result.mut = &sync.Mutex{}
 		return &result
