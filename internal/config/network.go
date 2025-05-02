@@ -39,6 +39,7 @@ type RelayerConfig struct {
 	RPC                     *ethclient.Client
 	RegistrationAddress     common.Address
 	LightweightStateAddress *common.Address
+	LikenessRegistryAddress *common.Address
 	ChainID                 *big.Int
 	PrivateKey              *ecdsa.PrivateKey
 	WhiteList               whitelist
@@ -56,6 +57,7 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			RPC                     *ethclient.Client `fig:"rpc,required"`
 			RegistrationAddress     common.Address    `fig:"registration,required"`
 			LightweightStateAddress *common.Address   `fig:"lightweight_state"`
+			LikenessRegistryAddress *common.Address   `fig:"likeness_registry"`
 			PrivateKey              *ecdsa.PrivateKey `fig:"private_key"`
 			VaultAddress            string            `fig:"vault_address"`
 			VaultMountPath          string            `fig:"vault_mount_path"`
@@ -76,6 +78,7 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		result.RPC = networkConfig.RPC
 		result.RegistrationAddress = networkConfig.RegistrationAddress
 		result.LightweightStateAddress = networkConfig.LightweightStateAddress
+		result.LikenessRegistryAddress = networkConfig.LikenessRegistryAddress
 
 		result.ChainID, err = result.RPC.ChainID(context.Background())
 		if err != nil {

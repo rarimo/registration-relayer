@@ -2,6 +2,7 @@ network:
   rpc: ""
   registration: ""
   lightweight_state: ""
+  likeness_registry: ""
   private_key: ""
   vault_address: "https://127.0.0.1:8200"
   vault_mount_path: "secret_data"
