@@ -44,6 +44,7 @@ type RelayerConfig struct {
 	WhiteList               whitelist
 	nonce                   uint64
 	GasLimitMultiplier      float64
+	GasPriceMultiplier      float64
 
 	mut *sync.Mutex
 }
@@ -61,8 +62,10 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			VaultMountPath          string            `fig:"vault_mount_path"`
 			WhiteList               []string          `fig:"whitelist"`
 			GasLimitMultiplier      float64           `fig:"gas_limit_multiplier"`
+			GasPriceMultiplier      float64           `fig:"gas_price_multiplier"`
 		}{
 			GasLimitMultiplier: 1.2,
+			GasPriceMultiplier: 0.9,
 		}
 		err := figure.
 			Out(&networkConfig).

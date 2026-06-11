@@ -113,11 +113,20 @@ func newTxResponse(tx *types.Transaction) resources.TxResponse {
 	}
 }
 
+var ONE = 1000000000
+
+func multiplyGasPrice(gasPrice *big.Int, multiplier float64) *big.Int {
+	mult := big.NewFloat(0).Mul(big.NewFloat(multiplier), big.NewFloat(float64(ONE)))
+	gas, _ := big.NewFloat(0).Mul(big.NewFloat(0).SetInt(gasPrice), mult).Int(nil)
+	return big.NewInt(0).Div(gas, big.NewInt(int64(ONE)))
+}
+
 func confGas(r *http.Request, txd *txData, receiver *common.Address) (err error) {
 	txd.gasPrice, err = RelayerConfig(r).RPC.SuggestGasPrice(r.Context())
 	if err != nil {
 		return fmt.Errorf("failed to suggest gas price: %w", err)
 	}
+	txd.gasPrice = multiplyGasPrice(txd.gasPrice, RelayerConfig(r).GasPriceMultiplier)
 
 	txd.gas, err = RelayerConfig(r).RPC.EstimateGas(r.Context(), ethereum.CallMsg{
 		From:     crypto.PubkeyToAddress(RelayerConfig(r).PrivateKey.PublicKey),
